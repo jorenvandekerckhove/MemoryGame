@@ -5,15 +5,17 @@ from skimage.measure import compare_ssim
 
 def draw_contours(frame, treshold):
     gray_img = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-    edged=cv2.Canny(gray_img,treshold[0], treshold[1])
-    contours, hierarchy = cv2.findContours(edged,cv2.RETR_EXTERNAL ,cv2.CHAIN_APPROX_SIMPLE )
-    cv2.drawContours(frame,contours,-1,(255,0,0),1)
+    blur_gray_img = cv2.GaussianBlur(gray_img,(5,5),0)
+    edged=cv2.Canny(blur_gray_img,treshold[0], treshold[1])
+    contours, hierarchy = cv2.findContours(edged,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+    cv2.drawContours(frame,contours,-1,(160,160,50), 2)
 
 def show_live_feed(frame):
     resized_frame = imutils.resize(frame, width=600)
     gray_img = cv2.cvtColor(resized_frame,cv2.COLOR_BGR2GRAY)
-    edged=cv2.Canny(gray_img, 20,255)
-    draw_contours(resized_frame, (200, 255))
+    blur_gray_img = cv2.GaussianBlur(gray_img,(5,5),0)
+    edged=cv2.Canny(blur_gray_img, 50,100)
+    draw_contours(resized_frame, (50, 180))
 
     black = [0, 0, 0]   
     font = cv2.FONT_HERSHEY_SIMPLEX

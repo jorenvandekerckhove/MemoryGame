@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import imutils
+import copy
 import os
 import helper_methods as hp
 from os import listdir
@@ -36,7 +37,7 @@ frame = cv2.imread(path_first_frame)
 
 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 blur = cv2.GaussianBlur(gray, (7, 7), 0.5)
-edge = cv2.Canny(blur, 127, 255, 3)
+edge = cv2.Canny(blur, 100, 220, 3)
 
 contours, hierarchy = cv2.findContours(edge, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -52,6 +53,7 @@ approx = cv2.approxPolyDP(cnt,epsilon,True)
 hull_list = []
 indexes = []
 i = 0
+box_list = []
 for cnt in contours:
     # This works but it takes more time    
     # hull = cv2.convexHull(cnt, returnPoints=True)
@@ -64,7 +66,8 @@ for cnt in contours:
     box = cv2.boxPoints(rect)
     box = np.int0(box)
     area = cv2.contourArea(box)
-    if area > 10000:
+    box_list.append(box)
+    if area > 5000:
         indexes.append(i)
         cv2.drawContours(frame,[box],0,(0, 60, 255),2)
     i += 1
@@ -72,18 +75,27 @@ for cnt in contours:
 # cv2.drawContours(frame, hull_list, 0, (255, 255, 255), 5)
 
 mask = np.zeros_like(frame) # Create mask where white is what we want, black otherwise
-cv2.drawContours(mask, contours, indexes[8], (255, 255, 255), -1) # Draw filled contour in mask
-out = np.zeros_like(frame) # Extract out the object and place into output image
-out[mask == 255] = frame[mask == 255]
+for i in range(len(indexes)):
+    print(i)
+    card = copy.deepcopy(mask)
+    cv2.drawContours(card, box_list, indexes[i], (255, 255, 255), -1) # Draw filled contour in mask
+    s = np.where(card == 255)
+    x, y = s[1], s[0]
+    (topy, topx) = (np.min(y), np.min(x))
+    (bottomy, bottomx) = (np.max(y), np.max(x))
+    card = frame[topy:bottomy+1, topx:bottomx+1]
+    cv2.imshow('Out', card)
+    cv2.waitKey()
+    cv2.destroyAllWindows()
 
-# # cropping the image
-s = np.where(out == 255)
-x, y = s[1], s[0]
-(topy, topx) = (np.min(y), np.min(x))
-(bottomy, bottomx) = (np.max(y), np.max(x))
-card = frame[topy:bottomy+1, topx:bottomx+1]
+# # # cropping the image
+# s = np.where(out != 0)
+# x, y = s[1], s[0]
+# (topy, topx) = (np.min(y), np.min(x))
+# (bottomy, bottomx) = (np.max(y), np.max(x))
+# frame = frame[topy:bottomy+1, topx:bottomx+1]
 
-# Show the output image
-cv2.imshow('Output', card)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+# # Show the output image
+# cv2.imshow('Output', frame)
+# cv2.waitKey(0)
+# cv2.destroyAllWindows()

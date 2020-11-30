@@ -76,7 +76,6 @@ for cnt in contours:
 
 mask = np.zeros_like(frame) # Create mask where white is what we want, black otherwise
 for i in range(len(indexes)):
-    print(i)
     card = copy.deepcopy(mask)
     cv2.drawContours(card, box_list, indexes[i], (255, 255, 255), -1) # Draw filled contour in mask
     s = np.where(card == 255)
@@ -87,15 +86,3 @@ for i in range(len(indexes)):
     cv2.imshow('Out', card)
     cv2.waitKey()
     cv2.destroyAllWindows()
-
-# # # cropping the image
-# s = np.where(out != 0)
-# x, y = s[1], s[0]
-# (topy, topx) = (np.min(y), np.min(x))
-# (bottomy, bottomx) = (np.max(y), np.max(x))
-# frame = frame[topy:bottomy+1, topx:bottomx+1]
-
-# # Show the output image
-# cv2.imshow('Output', frame)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()

@@ -49,7 +49,7 @@ def find_tiles_in_frame(frame):
         print("Coordinates center card",i,": x:",xc,"y:",yc)
         tiles.append(Tile(card, (xc,yc)))
         #centers.append((int(xc),int(yc)))
-    return tiles;
+    return tiles
     # #Draw centers                       
     # for point in centers:
     #     frame = cv2.circle(frame, point, 4, (0,0,255), -1)

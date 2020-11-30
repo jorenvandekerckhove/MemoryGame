@@ -35,6 +35,3 @@ for image in imagelist:
     print(len(matches))
     plt.imshow(matches_img)
     plt.show()
-
-
-

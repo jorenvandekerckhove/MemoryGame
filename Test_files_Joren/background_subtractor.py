@@ -16,7 +16,7 @@ mean_value = 0
 saving_file = False
 hand_in_frame = False
 count = 0
-saving_frame_counter = 0
+saving_frame_counter = 0 # This variable is used so that we don't need to save all the frames, but only the frames where tiles are rotated
 index_video = 6
 
 if not os.path.exists(PATH_FRAMES):
@@ -56,18 +56,21 @@ while ret:
             prev_values_frames.pop(0)
             prev_values_frames.append(summation)
         mean_value = np.mean(prev_values_frames)
-        if mean_value > 0.5:
-            hand_in_frame = True
+        if mean_value > 0.45:
+            hand_in_frame = True             
         else:
             hand_in_frame = False
         
         if hand_in_frame:
             if not saving_file:
-                saving_file = True
+                saving_file = True                               
 
         if saving_file and not hand_in_frame:
-            cv2.imwrite(path_frames_video + video_files[index_video][0:-4] + '_'+ str(saving_frame_counter) + '.png', frame)
-            saving_frame_counter += 1
+            if saving_frame_counter % 2 != 0:
+                cv2.imwrite(path_frames_video + video_files[index_video][0:-4] + '_'+ str(saving_frame_counter) + '.png', frame)
+                saving_frame_counter += 1
+            else:
+                saving_frame_counter += 1
             saving_file = False
 
     gray = np.zeros((50, foreground_mask.shape[1]), np.uint8)

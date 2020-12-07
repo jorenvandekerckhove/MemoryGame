@@ -22,8 +22,6 @@ class Grid:
         self.width_tile = width_tile
         self.height_tile = height_tile
         self.grid_array = grid_array
-<<<<<<< HEAD
-=======
         
 def find_matches_in_grid_and_label(grid):
     imagelist = grid.grid_array
@@ -68,9 +66,7 @@ def find_matches_in_grid_and_label(grid):
             pairing_number +=1
         i +=1
     return solution
-            
 
->>>>>>> main
 
 def create_grid(frame, contours):
     boxes = []
@@ -257,11 +253,7 @@ for i in range(4):
         current_x += grid.grid_array[i][j].shape[1]
     current_y += max_height
 
-<<<<<<< HEAD
-cv2.imwrite('Example_grid.png', final_image)
-=======
 cv2.imwrite('Example_grid.png', final_image)
 
 find_matches_in_grid_and_label(grid)
 
->>>>>>> main

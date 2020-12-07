@@ -135,7 +135,7 @@ grid.grid_array = grid_array
 # cv2.imshow('Template_tile', template_tile)
 # cv2.waitKey()
 
-# kp2, des2 = orb.detectAndCompute(template_tile, None)
+kp2, des2 = orb.detectAndCompute(template_tile, None)
 max_width = 0 # Used for later
 max_height = 0 # Used for later
 for i in range(1, len(saved_frames)):
@@ -149,15 +149,13 @@ for i in range(1, len(saved_frames)):
         if tile.image.shape[1] > max_width:
             max_width = tile.image.shape[1]
 
-        # kp, des = orb.detectAndCompute(tile.image, None)
+        kp, des = orb.detectAndCompute(tile.image, None)
         
-        # matches = bf.match(des, des2)
+        matches = bf.match(des, des2)
 
-        # if len(matches) < args.THRESHOLD_MATCHES:
-        print(hp.calcMI(template_tile, tile.image))
-        cv2.imshow('Tile', tile.image)
-        cv2.waitKey()
-        if hp.calcMI(template_tile, tile.image) > args.THRESHOLD_MATCHES:
+        if len(matches) < args.THRESHOLD_MATCHES:
+            # cv2.imshow('Tile', tile.image)
+            # cv2.waitKey()
             xpos, ypos = hp.find_place_in_grid(grid, tile)
             grid.grid_array[xpos][ypos] = tile.image
 
@@ -173,4 +171,6 @@ for i in range(args.ROWS):
     current_y += max_height
 
 cv2.imwrite('Example_grid.png', final_image)
+solution = hp.find_matches_in_grid_and_label(grid)
 print('Finished')
+print(solution)

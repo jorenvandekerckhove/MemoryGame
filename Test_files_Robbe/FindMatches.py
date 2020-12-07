@@ -6,6 +6,8 @@ import os
 
 dirpath = os.path.dirname(os.path.abspath(__file__))
 
+def find_matches_in_grid_and_label(grid):
+    imagelist = grid.grid_tiles
 
 imagelist= []
 for i in range(1,8):
@@ -31,7 +33,10 @@ for image in imagelist:
     matches = sorted(matches, key = lambda x:x.distance)
     matcheslist.append(matches)
     
-    matches_img = cv2.drawMatches(image,kp,queryimage,kp2,matches, outImg=None, flags=2)
+    #matches_img = cv2.drawMatches(image,kp,queryimage,kp2,matches, outImg=None, flags=2)
     print(len(matches))
-    plt.imshow(matches_img)
+    #plt.imshow(matches_img)
     plt.show()
+pass
+    
+    

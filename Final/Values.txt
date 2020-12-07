@@ -1,0 +1,1 @@
+start python script: python main.py --INDEX_VIDEO 7 --THRESHOLD_HAND 0.45 --THRESHOLD_MATCHES 50 --PLAY 0

@@ -22,6 +22,55 @@ class Grid:
         self.width_tile = width_tile
         self.height_tile = height_tile
         self.grid_array = grid_array
+<<<<<<< HEAD
+=======
+        
+def find_matches_in_grid_and_label(grid):
+    imagelist = grid.grid_array
+    height = len(imagelist)
+    width = len(imagelist[0])
+    total_size = height*width
+    
+    matcheslist = np.empty((height,width,total_size))
+    solution = np.zeros((height,width),dtype=int)
+    match_amount_max = np.zeros(total_size, dtype=int) #Keep track of what position has been matched already
+    
+    orb = cv2.ORB_create(WTA_K = 3)
+    bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck = True)
+    
+    for y, queryrow in enumerate(imagelist):
+        for x, queryimage in enumerate(queryrow):
+            kp2, des2 = orb.detectAndCompute(queryimage, None)
+            # plt.imshow(queryimage)
+            # plt.show()
+            k = x + width*y
+            for i, row in enumerate(imagelist):
+                for j, image in enumerate(row):
+                    kp, des = orb.detectAndCompute(image, None)
+                    matches = bf.match(des, des2)
+                    print(i,j,k)
+                    matcheslist[i][j][k] = len(matches)
+
+    #Stable marriage problem possible solution??
+    i=0
+    pairing_number = 0
+    while np.count_nonzero(match_amount_max) != len(match_amount_max):
+        if(match_amount_max[i] == 0):
+            temp = matcheslist[:,:,i]
+            idx = np.argpartition(temp, temp.size - 2, axis=None)[-2:]
+            res = np.column_stack(np.unravel_index(idx,temp.shape))
+            match_amount = temp[res[1][0]][res[1][1]]
+            if(match_amount > match_amount_max[width*res[1][0] + res[1][1]]):
+                match_amount_max[idx[0]] = match_amount
+                match_amount_max[idx[1]] = match_amount
+                for position in res:
+                    solution[position[0]][position[1]] = pairing_number
+            pairing_number +=1
+        i +=1
+    return solution
+            
+
+>>>>>>> main
 
 def create_grid(frame, contours):
     boxes = []
@@ -208,4 +257,11 @@ for i in range(4):
         current_x += grid.grid_array[i][j].shape[1]
     current_y += max_height
 
+<<<<<<< HEAD
 cv2.imwrite('Example_grid.png', final_image)
+=======
+cv2.imwrite('Example_grid.png', final_image)
+
+find_matches_in_grid_and_label(grid)
+
+>>>>>>> main

@@ -12,6 +12,9 @@ class Tile:
         self.image = image
         self.center = center
 
+def find_matches_in_grid_and_label(grid):
+    imagelist = grid.grid_tiles
+
 
 def find_tiles_in_frame(frame):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)

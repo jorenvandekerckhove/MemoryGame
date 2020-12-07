@@ -22,8 +22,6 @@ class Grid:
         self.width_tile = width_tile
         self.height_tile = height_tile
         self.grid_array = grid_array
-<<<<<<< HEAD
-=======
         
 def find_matches_in_grid_and_label(grid):
     imagelist = grid.grid_array
@@ -70,7 +68,6 @@ def find_matches_in_grid_and_label(grid):
     return solution
             
 
->>>>>>> main
 
 def create_grid(frame, contours):
     boxes = []

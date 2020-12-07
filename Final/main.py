@@ -9,6 +9,7 @@ from os import listdir
 from os.path import isfile, join
 from tile import Tile
 from grid import Grid
+from skimage.measure import compare_ssim
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 prev_values_frames = []
@@ -23,10 +24,10 @@ parser.add_argument('--PATH_VIDEOS', type=str, default='D:\\Video\'s\\UGent\\Mul
 parser.add_argument('--PATH_FRAMES', type=str, default='D:\\Video\'s\\UGent\\Multimedia\\Frames', help='Path where the frames are gonna be saved')
 parser.add_argument('--INDEX_VIDEO', type=int, default=6, help='Choose which movie it needs to play')
 parser.add_argument('--THRESHOLD_HAND', type=float, default=0.45, help='Used for checking if the hand is in screen')
-parser.add_argument('--THRESHOLD_MATCHES', type=int, default=60, help='Used for checking if the tile is not the template tile')
+parser.add_argument('--THRESHOLD_MATCHES', type=float, default=20000000, help='Used for checking if the tile is not the template tile')
 parser.add_argument('--COLS', type=int, default=4, help='Give the total of cols of the board')
 parser.add_argument('--ROWS', type=int, default=4, help='Give the total of rows of the board')
-parser.add_argument('--PLAY', type=int, default=1, help='Play the video or just check the frames')
+parser.add_argument('--PLAY', type=int, default=0, help='Play the video or just check the frames')
 
 args = parser.parse_args()
 
@@ -138,28 +139,65 @@ grid.grid_array = grid_array
 # kp2, des2 = orb.detectAndCompute(template_tile, None)
 max_width = 0 # Used for later
 max_height = 0 # Used for later
+
+# avg_color_per_row = np.average(template_tile, axis=0)
+# avg_colors = np.average(avg_color_per_row, axis=0)
+# int_averages_template = np.array(avg_colors, dtype=np.uint8)
+# print(int_averages_template)
+
+# print(grid.min_x)
+# print(grid.min_y)
+# print(grid.max_x)
+# print(grid.max_y)
+# print(grid.width_tile)
+# print(grid.height_tile)
+
 for i in range(1, len(saved_frames)):
+    # print(saved_frames)
+    # print(path_to_frame)
     path_to_frame = path_to_frames + '\\' + saved_frames[i]
     frame = cv2.imread(path_to_frame)
     tiles = hp.find_tiles_in_frame(frame)
-    
+
+    # resized_frame = cv2.resize(frame, (frame.shape[1]//2, frame.shape[0]//2))
+    # cv2.imshow('Frame', resized_frame)
+    # cv2.waitKey()
     for tile in tiles:
         if tile.image.shape[0] > max_height:
             max_height = tile.image.shape[0]
         if tile.image.shape[1] > max_width:
             max_width = tile.image.shape[1]
 
-        # kp, des = orb.detectAndCompute(tile.image, None)
-        
+        # Method 1: feature detection
+        # kp, des = orb.detectAndCompute(tile.image, None)        
         # matches = bf.match(des, des2)
 
-        # if len(matches) < args.THRESHOLD_MATCHES:
-        print(hp.calcMI(template_tile, tile.image))
-        cv2.imshow('Tile', tile.image)
-        cv2.waitKey()
-        if hp.calcMI(template_tile, tile.image) > args.THRESHOLD_MATCHES:
-            xpos, ypos = hp.find_place_in_grid(grid, tile)
-            grid.grid_array[xpos][ypos] = tile.image
+        # Method 2: average color
+        # avg_color_per_row = np.average(tile.image, axis=0)
+        # avg_colors = np.average(avg_color_per_row, axis=0)
+        # int_averages_tile = np.array(avg_colors, dtype=np.uint8)
+
+        # Method 3: SSIM
+        # (score, diff) = compare_ssim(cv2.cvtColor(template_tile, cv2.COLOR_BGR2GRAY), cv2.resize(cv2.cvtColor(tile.image, cv2.COLOR_BGR2GRAY), (template_tile.shape[1], template_tile.shape[0])) , full=True)
+        # diff = (diff * 255).astype("uint8")
+        # print(score)
+
+        # Method 4: template matching
+        # print('New tile')
+        resized = cv2.resize(tile.image, (template_tile.shape[1], template_tile.shape[0]))
+        res = cv2.matchTemplate(resized,template_tile, cv2.TM_CCOEFF)
+        # print(res[0][0])
+        
+        # cv2.imshow('Template', template_tile)
+        # cv2.imshow('Tile', tile.image)
+        # cv2.waitKey()
+        if res[0][0] < args.THRESHOLD_MATCHES:   
+            # print('Tile center:', tile.center)
+            xpos, ypos = hp.find_place_in_grid(grid, tile, args.COLS, args.ROWS)
+            # print(xpos, ypos)
+            # cv2.imshow('Tile', tile.image)
+            # cv2.waitKey()  
+            grid.grid_array[ypos][xpos] = tile.image
 
 # Creating an image of the grid, so where all the tiles are shown
 final_image = np.zeros((max_height*args.ROWS,max_width*args.COLS,3), dtype=np.uint8)

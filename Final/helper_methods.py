@@ -138,7 +138,7 @@ def find_tiles_in_frame(frame):
         box = np.int0(box)
         area = cv2.contourArea(box)
         box_list.append(box)
-        if area > 5000:
+        if area > 20000:
             indexes.append(i)
             cv2.drawContours(colored_frame,[box],0,(0, 60, 255),2)
         i += 1
@@ -161,13 +161,15 @@ def find_tiles_in_frame(frame):
         tiles.append(Tile(card, (xc,yc)))
     return tiles
 
-def find_place_in_grid(grid, tile):
+def find_place_in_grid(grid, tile, divide_x, divide_y):
     # print('Grid min x:', grid.min_x, 'max x:', grid.max_x, 'min y:', grid.min_y, 'max y:', grid.max_y)
     # print('tile x:', tile.center[0], 'y:', tile.center[1])
-    offsetx = (grid.max_x - grid.min_x)/3
-    offsety = (grid.max_y - grid.min_y)/3
-    x_min_off, x_max_off = 0, offsetx 
-    y_min_off, y_max_off = 0, offsety
+    offsetx = (grid.max_x - grid.min_x)/(divide_x)
+    offsety = (grid.max_y - grid.min_y)/(divide_y)
+    # print('offsetx:',offsetx)
+    # print('offsety:',offsety)
+    x_min_off, x_max_off = grid.min_x, grid.min_x + offsetx 
+    y_min_off, y_max_off = grid.min_y, grid.min_y + offsety
     x_pos, y_pos = 0, 0
     for i in range(len(grid.grid_array[0])):
         if x_min_off <= tile.center[0] and tile.center[0] <= x_max_off:
@@ -177,6 +179,10 @@ def find_place_in_grid(grid, tile):
             x_min_off += offsetx
             x_max_off += offsetx
     
+    # print('x_min_off:',x_min_off)
+    # print('x_max_off:',x_max_off)
+    # print()
+
     for i in range(len(grid.grid_array)):
         if y_min_off <= tile.center[1] and tile.center[1] <= y_max_off:
             y_pos = i
@@ -185,4 +191,8 @@ def find_place_in_grid(grid, tile):
             y_min_off += offsety
             y_max_off += offsety
     
+    # print('y_min_off:',y_min_off)
+    # print('y_max_off:',y_max_off)
+    # print()
+
     return x_pos, y_pos

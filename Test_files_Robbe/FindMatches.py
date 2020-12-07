@@ -35,13 +35,8 @@ for image in imagelist:
     
     #matches_img = cv2.drawMatches(image,kp,queryimage,kp2,matches, outImg=None, flags=2)
     print(len(matches))
-<<<<<<< HEAD
-    plt.imshow(matches_img)
-    plt.show()
-=======
     #plt.imshow(matches_img)
     plt.show()
 pass
     
     
->>>>>>> main

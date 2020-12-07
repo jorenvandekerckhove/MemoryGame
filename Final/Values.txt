@@ -1,1 +1,2 @@
-start python script: python main.py --INDEX_VIDEO 7 --THRESHOLD_HAND 0.45 --THRESHOLD_MATCHES 50 --PLAY 0
+start python script strand_1: python main.py --INDEX_VIDEO 6 --THRESHOLD_HAND 0.45 --THRESHOLD_MATCHES 0.65  --PLAY 0 --ROWS 4  --COLS 4
+start python script strand_2: python main.py --INDEX_VIDEO 7 --THRESHOLD_HAND 0.45 --THRESHOLD_MATCHES 0.6  --PLAY 0 --ROWS 4  --COLS 4

@@ -22,12 +22,14 @@ saving_frame_counter = 0 # This variable is used so that we don't need to save a
 parser = argparse.ArgumentParser(description='Process some values.')
 parser.add_argument('--PATH_VIDEOS', type=str, default='D:\\Video\'s\\UGent\\Multimedia\\Test_files', help='Path to the videos')
 parser.add_argument('--PATH_FRAMES', type=str, default='D:\\Video\'s\\UGent\\Multimedia\\Frames', help='Path where the frames are gonna be saved')
-parser.add_argument('--INDEX_VIDEO', type=int, default=6, help='Choose which movie it needs to play')
-parser.add_argument('--THRESHOLD_HAND', type=float, default=0.45, help='Used for checking if the hand is in screen')
-parser.add_argument('--THRESHOLD_MATCHES', type=float, default=20000000, help='Used for checking if the tile is not the template tile')
-parser.add_argument('--COLS', type=int, default=4, help='Give the total of cols of the board')
+parser.add_argument('--INDEX_VIDEO', type=int, default=13, help='Choose which movie it needs to play')
+parser.add_argument('--THRESHOLD_HAND', type=float, default=0.3, help='Used for checking if the hand is in screen')
+parser.add_argument('--THRESHOLD_MATCHES', type=float, default=15, help='Used for checking if the tile is not the template tile')
+parser.add_argument('--COLS', type=int, default=6, help='Give the total of cols of the board')
 parser.add_argument('--ROWS', type=int, default=4, help='Give the total of rows of the board')
+parser.add_argument('--BORDER', type=int, default=30, help='Give the total of rows of the board')
 parser.add_argument('--PLAY', type=int, default=0, help='Play the video or just check the frames')
+parser.add_argument('--SAVE', type=int, default=1, help='0 for saving not all the frames, 1 for saving all the frames')
 
 args = parser.parse_args()
 
@@ -57,6 +59,7 @@ path_frames_video = args.PATH_FRAMES + '\\' + video_files[args.INDEX_VIDEO][0:-4
 if not os.path.exists(path_frames_video):
     os.mkdir(path_frames_video)
 
+mean_value = 0
 if args.PLAY == 1:
     ret, frame = video_cap.read() # ret is a bool that is true if there is a frame, frame is a part of the video
     cv2.imwrite(path_frames_video + video_files[args.INDEX_VIDEO][0:-4] + '_'+ str(saving_frame_counter) + '.png', frame)
@@ -87,17 +90,22 @@ if args.PLAY == 1:
                     saving_file = True                               
 
             if saving_file and not hand_in_frame:
-                if saving_frame_counter % 2 != 0: # It happens that when tiles are rotated, that nothing is shown to the user, so we save only the frames where the rotated tiles contains a picture
+                if args.SAVE == 1:
                     cv2.imwrite(path_frames_video + video_files[args.INDEX_VIDEO][0:-4] + '_'+ str(saving_frame_counter) + '.png', frame)
                     saving_frame_counter += 1
+                    saving_file = False
                 else:
-                    saving_frame_counter += 1
-                saving_file = False
+                    if saving_frame_counter % 2 != 0: # It happens that when tiles are rotated, that nothing is shown to the user, so we save only the frames where the rotated tiles contains a picture
+                        cv2.imwrite(path_frames_video + video_files[args.INDEX_VIDEO][0:-4] + '_'+ str(saving_frame_counter) + '.png', frame)
+                        saving_frame_counter += 1
+                    else:
+                        saving_frame_counter += 1
+                    saving_file = False
 
         gray = np.zeros((50, foreground_mask.shape[1]), np.uint8)
         gray[:] = 150
         vcat1 = cv2.vconcat((gray, foreground_mask))    
-        cv2.putText(vcat1,f"Hand detected: {hand_in_frame}", (30,30), font, 1,(0,0,0), 2, 0)
+        cv2.putText(vcat1,f"Hand detected: {hand_in_frame}, val: {mean_value}", (30,30), font, 1,(0,0,0), 2, 0)
         cv2.imshow('Mask', vcat1)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -149,10 +157,11 @@ max_height = 0 # Used for later
 # print(grid.min_y)
 # print(grid.max_x)
 # print(grid.max_y)
-# print(grid.width_tile)
-# print(grid.height_tile)
+print(grid.width_tile)
+print(grid.height_tile)
 
 for i in range(1, len(saved_frames)):
+    print("Looking at frame", i)
     # print(saved_frames)
     # print(path_to_frame)
     path_to_frame = path_to_frames + '\\' + saved_frames[i]
@@ -184,14 +193,20 @@ for i in range(1, len(saved_frames)):
 
         # Method 4: template matching
         # print('New tile')
-        resized = cv2.resize(tile.image, (template_tile.shape[1], template_tile.shape[0]))
-        res = cv2.matchTemplate(resized,template_tile, cv2.TM_CCOEFF)
+        # resized = cv2.resize(tile.image, (template_tile.shape[1], template_tile.shape[0]))
+        # res = cv2.matchTemplate(resized,template_tile, cv2.TM_CCOEFF)
         # print(res[0][0])
+
+        # Method 5: subtraction
+        resized = cv2.resize(tile.image, (template_tile.shape[1], template_tile.shape[0]))
+        res = cv2.subtract(template_tile[args.BORDER:template_tile.shape[1]-args.BORDER, args.BORDER:template_tile.shape[0]-args.BORDER,:], resized[args.BORDER:template_tile.shape[1]-args.BORDER, args.BORDER:template_tile.shape[0]-args.BORDER,:])
+        res = np.mean(res)
+        # print('subtract:', res)
         
         # cv2.imshow('Template', template_tile)
         # cv2.imshow('Tile', tile.image)
         # cv2.waitKey()
-        if res[0][0] < args.THRESHOLD_MATCHES:   
+        if res > args.THRESHOLD_MATCHES:   
             # print('Tile center:', tile.center)
             xpos, ypos = hp.find_place_in_grid(grid, tile, args.COLS, args.ROWS)
             # print(xpos, ypos)

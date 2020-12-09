@@ -136,7 +136,7 @@ grid.grid_array = grid_array
 # cv2.imshow('Template_tile', template_tile)
 # cv2.waitKey()
 
-# kp2, des2 = orb.detectAndCompute(template_tile, None)
+kp2, des2 = orb.detectAndCompute(template_tile, None)
 max_width = 0 # Used for later
 max_height = 0 # Used for later
 
@@ -211,4 +211,6 @@ for i in range(args.ROWS):
     current_y += max_height
 
 cv2.imwrite('Example_grid.png', final_image)
+solution = hp.find_matches_in_grid_and_label(grid)
 print('Finished')
+print(solution)

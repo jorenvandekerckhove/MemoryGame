@@ -66,7 +66,6 @@ def find_matches_in_grid_and_label(grid):
             pairing_number +=1
         i +=1
     return solution
-            
 
 
 def create_grid(frame, contours):
@@ -254,11 +253,7 @@ for i in range(4):
         current_x += grid.grid_array[i][j].shape[1]
     current_y += max_height
 
-<<<<<<< HEAD
-cv2.imwrite('Example_grid.png', final_image)
-=======
 cv2.imwrite('Example_grid.png', final_image)
 
 find_matches_in_grid_and_label(grid)
 
->>>>>>> main

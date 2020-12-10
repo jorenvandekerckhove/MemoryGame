@@ -214,6 +214,7 @@ for i in range(1, len(saved_frames)):
             # cv2.waitKey()  
             grid.grid_array[ypos][xpos] = tile.image
 
+solution = hp.find_matches_in_grid_and_label(grid)
 # Creating an image of the grid, so where all the tiles are shown
 final_image = np.zeros((max_height*args.ROWS,max_width*args.COLS,3), dtype=np.uint8)
 current_x = 0
@@ -224,8 +225,7 @@ for i in range(args.ROWS):
         final_image[current_y:(grid.grid_array[i][j].shape[0]+current_y), current_x:(grid.grid_array[i][j].shape[1]+current_x),:] = grid.grid_array[i][j]
         current_x += grid.grid_array[i][j].shape[1]
     current_y += max_height
-
+    
 cv2.imwrite('Example_grid.png', final_image)
-solution = hp.find_matches_in_grid_and_label(grid)
 print('Finished')
 print(solution)

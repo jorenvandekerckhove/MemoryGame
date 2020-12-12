@@ -68,7 +68,7 @@ def show_live_feed(frame, foreground_mask, hand_in_frame, mean_value):
     final_img = cv2.hconcat((vcat1, vcat2))
 
     # cv2.namedWindow('Final', cv2.WINDOW_NORMAL)
-    cv2.imshow('Final', final_img)    
+    cv2.imshow('Live video', final_img)    
     # cv2.resizeWindow('Final', (vcat2.shape[1]//2,final_img.shape[0]//2))
 
 def create_grid(frame, contours):
@@ -140,7 +140,8 @@ def find_tiles_in_frame(frame):
         box = np.int0(box)
         area = cv2.contourArea(box)
         box_list.append(box)
-        if area > 8000:
+        # print(area)
+        if area > 25000:
             indexes.append(i)
             cv2.drawContours(colored_frame,[box],0,(0, 60, 255),2)
         i += 1
@@ -245,7 +246,12 @@ def find_matches_in_grid_and_label(grid):
     for i,row in enumerate(imagelist):
         for j,image in enumerate(row):
             # cv2.putText(image, str(solution[i][j]), (int(image.shape[0]/2),int(image.shape[1]/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 3)
-            cv2.putText(image, str(solution[i][j]), (30,30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 3)
+            rect = 255 * np.ones(shape=[50, 50, 3], dtype=np.uint8)
+            if len(str(solution[i][j])) >= 2:
+                cv2.rectangle(image, (5,0), (55,35), (255, 255, 255), -1)
+            else:
+                cv2.rectangle(image, (5,0), (35,35), (255, 255, 255), -1)
+            cv2.putText(image, str(solution[i][j]), (10,27), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 3)
 
     # solution_image = np.zeros((int(grid.width_tile*2), int(grid.height_tile*(total_size/2)), 3))
     # for i in range(total_size):

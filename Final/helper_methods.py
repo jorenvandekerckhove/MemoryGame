@@ -241,4 +241,29 @@ def find_matches_in_grid_and_label(grid):
                     solution[position[0]][position[1]] = pairing_number
             pairing_number +=1
         i +=1
+        
+    for i,row in enumerate(imagelist):
+        for j,image in enumerate(row):
+            # cv2.putText(image, str(solution[i][j]), (int(image.shape[0]/2),int(image.shape[1]/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 3)
+            cv2.putText(image, str(solution[i][j]), (30,30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 3)
+
+    # solution_image = np.zeros((int(grid.width_tile*2), int(grid.height_tile*(total_size/2)), 3))
+    # for i in range(total_size):
+    #     newimage = []
+    #     locations = np.asarray(np.where(solution == i)).T
+    #     print(locations)
+    #     if(locations.size != 0):
+    #         image1 = imagelist[locations[0][0]][locations[0][1]] 
+    #         image2 = imagelist[locations[1][0]][locations[1][1]]
+    #         h1, w1 = image1.shape[:2]
+    #         h2, w2 = image2.shape[:2]
+    #         newimage = np.zeros((max(h1, h2), w1+w2,3), np.uint8)
+    #         newimage[:h1, :w1, :3] = image1
+    #         newimage[:h2,w1:w1+w2,:3] =  image2
+    #         newimage = newimage.reshape(solution_image.shape[0], int(solution_image.shape[1]/(total_size/2)), 3)
+    #         solution_image = np.concatenate((newimage, solution_image), axis=0)
+    # cv2.imshow("Please werk",solution_image)
+    # cv2.waitKey()
+    # cv2.destroyAllWindows()
+                               
     return solution

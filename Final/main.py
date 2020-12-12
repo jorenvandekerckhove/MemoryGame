@@ -22,12 +22,14 @@ saving_frame_counter = 0 # This variable is used so that we don't need to save a
 parser = argparse.ArgumentParser(description='Process some values.')
 parser.add_argument('--PATH_VIDEOS', type=str, default='D:\\Video\'s\\UGent\\Multimedia\\Test_files', help='Path to the videos')
 parser.add_argument('--PATH_FRAMES', type=str, default='D:\\Video\'s\\UGent\\Multimedia\\Frames', help='Path where the frames are gonna be saved')
-parser.add_argument('--INDEX_VIDEO', type=int, default=13, help='Choose which movie it needs to play')
-parser.add_argument('--THRESHOLD_HAND', type=float, default=0.3, help='Used for checking if the hand is in screen')
-parser.add_argument('--THRESHOLD_MATCHES', type=float, default=15, help='Used for checking if the tile is not the template tile')
-parser.add_argument('--COLS', type=int, default=6, help='Give the total of cols of the board')
-parser.add_argument('--ROWS', type=int, default=4, help='Give the total of rows of the board')
-parser.add_argument('--BORDER', type=int, default=30, help='Give the total of rows of the board')
+parser.add_argument('--INDEX_VIDEO', type=int, default=4, help='Choose which movie it needs to play')
+parser.add_argument('--THRESHOLD_HAND', type=float, default=0.25, help='Used for checking if the hand is in screen')
+parser.add_argument('--THRESHOLD_SUB', type=float, default=32, help='Used for checking if the tile is not the template tile')
+parser.add_argument('--THRESHOLD_MATCHES', type=float, default=0.05, help='Used for checking if the tile is not the template tile')
+parser.add_argument('--COLS', type=int, default=10, help='Give the total of cols of the board')
+parser.add_argument('--ROWS', type=int, default=7, help='Give the total of rows of the board')
+parser.add_argument('--BORDER', type=int, default=10, help='Give the total of rows and cols that need to dissapear for calculation')
+parser.add_argument('--METHOD', type=str, default="hist", help='Choose which method you want to use. sub = subtraction, sub_key = subtraction or keypoints')
 parser.add_argument('--PLAY', type=int, default=0, help='Play the video or just check the frames')
 parser.add_argument('--SAVE', type=int, default=1, help='0 for saving not all the frames, 1 for saving all the frames')
 
@@ -102,11 +104,12 @@ if args.PLAY == 1:
                         saving_frame_counter += 1
                     saving_file = False
 
-        gray = np.zeros((50, foreground_mask.shape[1]), np.uint8)
-        gray[:] = 150
-        vcat1 = cv2.vconcat((gray, foreground_mask))    
-        cv2.putText(vcat1,f"Hand detected: {hand_in_frame}, val: {mean_value}", (30,30), font, 1,(0,0,0), 2, 0)
-        cv2.imshow('Mask', vcat1)
+        # gray = np.zeros((50, foreground_mask.shape[1]), np.uint8)
+        # gray[:] = 150
+        # vcat1 = cv2.vconcat((gray, foreground_mask))    
+        # cv2.putText(vcat1,f"Hand detected: {hand_in_frame}, val: {mean_value}", (30,30), font, 1,(0,0,0), 2, 0)
+        # cv2.imshow('Mask', vcat1)
+        hp.show_live_feed(frame, foreground_mask, hand_in_frame, mean_value)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -117,7 +120,8 @@ if args.PLAY == 1:
     cv2.destroyAllWindows()
 
 orb = cv2.ORB_create()
-bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck = True)
+bf = cv2.BFMatcher()
+# bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck = True)
 
 path_to_frames = args.PATH_FRAMES + '\\' + video_files[args.INDEX_VIDEO][0:-4]
 saved_frames = [f for f in listdir(path_to_frames) if isfile(join(path_to_frames, f))]
@@ -144,75 +148,128 @@ grid.grid_array = grid_array
 # cv2.imshow('Template_tile', template_tile)
 # cv2.waitKey()
 
-kp2, des2 = orb.detectAndCompute(template_tile, None)
 max_width = 0 # Used for later
 max_height = 0 # Used for later
 
-# avg_color_per_row = np.average(template_tile, axis=0)
-# avg_colors = np.average(avg_color_per_row, axis=0)
-# int_averages_template = np.array(avg_colors, dtype=np.uint8)
-# print(int_averages_template)
-
-# print(grid.min_x)
-# print(grid.min_y)
-# print(grid.max_x)
-# print(grid.max_y)
-print(grid.width_tile)
-print(grid.height_tile)
-
 for i in range(1, len(saved_frames)):
-    print("Looking at frame", i)
-    # print(saved_frames)
-    # print(path_to_frame)
+    print("Looking at frame", i, ":", saved_frames[i])
     path_to_frame = path_to_frames + '\\' + saved_frames[i]
     frame = cv2.imread(path_to_frame)
     tiles = hp.find_tiles_in_frame(frame)
+    validated_files = 0
+    print('Total tiles found:', len(tiles))
 
-    # resized_frame = cv2.resize(frame, (frame.shape[1]//2, frame.shape[0]//2))
-    # cv2.imshow('Frame', resized_frame)
-    # cv2.waitKey()
     for tile in tiles:
         if tile.image.shape[0] > max_height:
             max_height = tile.image.shape[0]
         if tile.image.shape[1] > max_width:
             max_width = tile.image.shape[1]
 
-        # Method 1: feature detection
-        # kp, des = orb.detectAndCompute(tile.image, None)        
-        # matches = bf.match(des, des2)
-
-        # Method 2: average color
-        # avg_color_per_row = np.average(tile.image, axis=0)
-        # avg_colors = np.average(avg_color_per_row, axis=0)
-        # int_averages_tile = np.array(avg_colors, dtype=np.uint8)
-
-        # Method 3: SSIM
-        # (score, diff) = compare_ssim(cv2.cvtColor(template_tile, cv2.COLOR_BGR2GRAY), cv2.resize(cv2.cvtColor(tile.image, cv2.COLOR_BGR2GRAY), (template_tile.shape[1], template_tile.shape[0])) , full=True)
-        # diff = (diff * 255).astype("uint8")
-        # print(score)
-
-        # Method 4: template matching
-        # print('New tile')
-        # resized = cv2.resize(tile.image, (template_tile.shape[1], template_tile.shape[0]))
-        # res = cv2.matchTemplate(resized,template_tile, cv2.TM_CCOEFF)
-        # print(res[0][0])
-
-        # Method 5: subtraction
         resized = cv2.resize(tile.image, (template_tile.shape[1], template_tile.shape[0]))
-        res = cv2.subtract(template_tile[args.BORDER:template_tile.shape[1]-args.BORDER, args.BORDER:template_tile.shape[0]-args.BORDER,:], resized[args.BORDER:template_tile.shape[1]-args.BORDER, args.BORDER:template_tile.shape[0]-args.BORDER,:])
-        res = np.mean(res)
-        # print('subtract:', res)
         
-        # cv2.imshow('Template', template_tile)
-        # cv2.imshow('Tile', tile.image)
-        # cv2.waitKey()
-        if res > args.THRESHOLD_MATCHES:   
-            # print('Tile center:', tile.center)
-            xpos, ypos = hp.find_place_in_grid(grid, tile, args.COLS, args.ROWS)
-            # print(xpos, ypos)
-            # cv2.imshow('Tile', tile.image)
-            # cv2.waitKey()  
-            grid.grid_array[ypos][xpos] = tile.image
+        if args.METHOD == "match":
+            kp2, des2 = orb.detectAndCompute(template_tile[args.BORDER:template_tile.shape[1]-args.BORDER, args.BORDER:template_tile.shape[0]-args.BORDER,:], None)
+            kp, des = orb.detectAndCompute(resized[args.BORDER:template_tile.shape[1]-args.BORDER, args.BORDER:template_tile.shape[0]-args.BORDER,:], None)        
+            
+            # Matches normal
+            # matches = bf.match(des,des2)
+            # matches = sorted(matches, key = lambda x:x.distance)
+            # Matches with ratio test
+            matches = bf.knnMatch(des, des2, k=2)        
+            good = []
+            for m,n in matches:
+                if m.distance < 0.8*n.distance:
+                    good.append([m])
+            total_matches = len(good)
+
+            if total_matches <= args.THRESHOLD_MATCHES:
+                xpos, ypos = hp.find_place_in_grid(grid, tile, args.COLS, args.ROWS) 
+                grid.grid_array[ypos][xpos] = tile.image
+
+        elif args.METHOD == "hist":
+            hsv_base = cv2.cvtColor(template_tile[args.BORDER:template_tile.shape[1]-args.BORDER, args.BORDER:template_tile.shape[0]-args.BORDER,:], cv2.COLOR_BGR2HSV)
+            hsv_test = cv2.cvtColor(resized[args.BORDER:template_tile.shape[1]-args.BORDER, args.BORDER:template_tile.shape[0]-args.BORDER,:], cv2.COLOR_BGR2HSV)
+            
+            h_bins = 50
+            s_bins = 60
+            histSize = [h_bins, s_bins]
+            # hue varies from 0 to 179, saturation from 0 to 255
+            h_ranges = [0, 180]
+            s_ranges = [0, 256]
+            ranges = h_ranges + s_ranges # concat lists
+            # Use the 0-th and 1-st channels
+            channels = [0, 1]
+
+            hist_base = cv2.calcHist([hsv_base], channels, None, histSize, ranges, accumulate=False)
+            cv2.normalize(hist_base, hist_base, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
+
+            hist_test = cv2.calcHist([hsv_test], channels, None, histSize, ranges, accumulate=False)
+            cv2.normalize(hist_test, hist_test, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
+
+            base_test = cv2.compareHist(hist_base, hist_test, 0)
+
+            resized = resized
+            if base_test < args.THRESHOLD_MATCHES:
+                validated_files += 1
+                xpos, ypos = hp.find_place_in_grid(grid, tile, args.COLS, args.ROWS) 
+                grid.grid_array[ypos][xpos] = tile.image
+
+        elif args.METHOD == "template":
+            threshold = 0.8
+            template_logo = template_tile[args.BORDER:template_tile.shape[1]-args.BORDER, args.BORDER:template_tile.shape[0]-args.BORDER,:]
+            res_template_1 = cv2.matchTemplate(resized,template_logo, cv2.TM_CCOEFF_NORMED)
+            loc1 = np.where(res_template_1 >= threshold)
+
+            template_logo = imutils.rotate_bound(template_logo, 270)
+            res_template_2 = cv2.matchTemplate(resized,template_logo, cv2.TM_CCOEFF_NORMED)        
+            loc2 = np.where(res_template_2 >= threshold)
+
+            resized = resized
+            if len(loc1[0])==0 and len(loc1[1])==0 and len(loc2[1])==0 and len(loc2[1])==0 and res_template_1.max() < args.THRESHOLD_MATCHES and res_template_1.min() < 0 and res_template_2.max() < args.THRESHOLD_MATCHES and res_template_2.min() < 0:
+                validated_files += 1
+                xpos, ypos = hp.find_place_in_grid(grid, tile, args.COLS, args.ROWS) 
+                grid.grid_array[ypos][xpos] = tile.image
+
+        elif args.METHOD == "sub":
+            res = cv2.subtract(template_tile[args.BORDER:template_tile.shape[1]-args.BORDER, args.BORDER:template_tile.shape[0]-args.BORDER,:], resized[args.BORDER:template_tile.shape[1]-args.BORDER, args.BORDER:template_tile.shape[0]-args.BORDER,:])
+            res = np.mean(res)
+            resized = resized
+            if res > args.THRESHOLD_SUB:   
+                validated_files += 1
+                xpos, ypos = hp.find_place_in_grid(grid, tile, args.COLS, args.ROWS) 
+                grid.grid_array[ypos][xpos] = tile.image
+
+        elif args.METHOD == "key":
+            kp, des = orb.detectAndCompute(resized[args.BORDER:template_tile.shape[1]-args.BORDER, args.BORDER:template_tile.shape[0]-args.BORDER,:], None)        
+            resized = resized
+            if len(kp) > args.THRESHOLD_MATCHES:
+                validated_files += 1
+                xpos, ypos = hp.find_place_in_grid(grid, tile, args.COLS, args.ROWS)
+                grid.grid_array[ypos][xpos] = tile.image
+
+        elif args.METHOD == "sub_key":
+            kp, des = orb.detectAndCompute(resized[args.BORDER:template_tile.shape[1]-args.BORDER, args.BORDER:template_tile.shape[0]-args.BORDER,:], None)        
+            res = cv2.subtract(template_tile[args.BORDER:template_tile.shape[1]-args.BORDER, args.BORDER:template_tile.shape[0]-args.BORDER,:], resized[args.BORDER:template_tile.shape[1]-args.BORDER, args.BORDER:template_tile.shape[0]-args.BORDER,:])
+            res = np.mean(res)
+            resized = resized
+            if res > args.THRESHOLD_SUB or len(kp) > args.THRESHOLD_MATCHES:   
+                # print('Tile center:', tile.center)
+                validated_files += 1
+                xpos, ypos = hp.find_place_in_grid(grid, tile, args.COLS, args.ROWS)
+                grid.grid_array[ypos][xpos] = tile.image
+        
+        elif args.METHOD == "sub_and_key":
+            kp, des = orb.detectAndCompute(resized[args.BORDER:template_tile.shape[1]-args.BORDER, args.BORDER:template_tile.shape[0]-args.BORDER,:], None)        
+            res = cv2.subtract(template_tile[args.BORDER:template_tile.shape[1]-args.BORDER, args.BORDER:template_tile.shape[0]-args.BORDER,:], resized[args.BORDER:template_tile.shape[1]-args.BORDER, args.BORDER:template_tile.shape[0]-args.BORDER,:])
+            res = np.mean(res)
+            small = resized[args.BORDER:template_tile.shape[1]-args.BORDER, args.BORDER:template_tile.shape[0]-args.BORDER,:] 
+            if res > args.THRESHOLD_SUB and len(kp) > args.THRESHOLD_MATCHES:   
+                validated_files += 1
+                xpos, ypos = hp.find_place_in_grid(grid, tile, args.COLS, args.ROWS)
+                grid.grid_array[ypos][xpos] = tile.image
+
+    print('Validated tiles found:', validated_files)
+    print()
 
 # Creating an image of the grid, so where all the tiles are shown
 final_image = np.zeros((max_height*args.ROWS,max_width*args.COLS,3), dtype=np.uint8)

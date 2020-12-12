@@ -19,8 +19,7 @@ def calcMSE(image1, image2): #Calc MSE of greyscale --> Higher value = less simi
     return err
 
 def calcSSIM(image1, image2): #Calc SSIM of greyscale --> Higher value = more similar
-    resized = cv2.resize(image2, (image1.shape[1], image1.shape[0]))
-    return ssim(image1,resized)
+    return ssim(image1,image2, multichannel=True)
 
 def calcMI(image1, image2, bins = 20):
     resized = cv2.resize(image2, (image1.shape[1], image1.shape[0]))
@@ -42,36 +41,38 @@ def draw_contours(frame, treshold):
     contours, hierarchy = cv2.findContours(edged,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
     cv2.drawContours(frame,contours,-1,(160,160,50), 2)
 
-def show_live_feed(frame):
+def show_live_feed(frame, foreground_mask, hand_in_frame, mean_value):
     resized_frame = imutils.resize(frame, width=600)
-    gray_img = cv2.cvtColor(resized_frame,cv2.COLOR_BGR2GRAY)
-    blur_gray_img = cv2.GaussianBlur(gray_img,(5,5),0)
-    edged=cv2.Canny(blur_gray_img, 50,100)
-    draw_contours(resized_frame, (50, 180))
+    # gray_img = cv2.cvtColor(resized_frame,cv2.COLOR_BGR2GRAY)
+    # blur_gray_img = cv2.GaussianBlur(gray_img,(5,5),0)
+    # edged=cv2.Canny(blur_gray_img, 50,100)
+    # draw_contours(resized_frame, (50, 180))
 
     black = [0, 0, 0]   
-    font = cv2.FONT_HERSHEY_SIMPLEX
+    font = cv2.FONT_HERSHEY_DUPLEX 
 
     constant = cv2.copyMakeBorder(resized_frame, 5, 5, 5, 5, cv2.BORDER_CONSTANT, value=black)
     gray= np.zeros((50, constant.shape[1], 3), np.uint8)
     gray[:] = (150, 150, 150)
     vcat1 = cv2.vconcat((gray, constant))    
-    cv2.putText(vcat1,'Video', (30,30), font, 1,(0,0,0), 2, 0)
+    cv2.putText(vcat1,'Video',(30,40), font, 1,(0,0,0), 3, 0)
     
-    constant = cv2.copyMakeBorder(edged, 5, 5, 5, 5, cv2.BORDER_CONSTANT, value=black)
+    resized_foreground_mask = cv2.resize(foreground_mask, (resized_frame.shape[1], resized_frame.shape[0]))
+    constant = cv2.copyMakeBorder(resized_foreground_mask, 5, 5, 5, 5, cv2.BORDER_CONSTANT, value=black)
     gray = np.zeros((50, constant.shape[1]), np.uint8)
     gray[:] = 150
     vcat2 = cv2.vconcat((gray, constant))
     vcat2 = cv2.cvtColor(vcat2, cv2.COLOR_GRAY2BGR)
-    cv2.putText(vcat2,'Edging applied', (30,30), font, 1,(0,0,0), 2, 0)
+    cv2.putText(vcat2,f"Hand detected: {hand_in_frame}",(30,40), font, 1,(0,0,0), 3, 0)
 
     final_img = cv2.hconcat((vcat1, vcat2))
 
-    cv2.namedWindow('Final', cv2.WINDOW_NORMAL)
+    # cv2.namedWindow('Final', cv2.WINDOW_NORMAL)
     cv2.imshow('Final', final_img)    
     # cv2.resizeWindow('Final', (vcat2.shape[1]//2,final_img.shape[0]//2))
 
 def create_grid(frame, contours):
+    colored_frame = copy.deepcopy(frame)
     boxes = []
     width_tile = 0
     height_tile = 0
@@ -84,12 +85,12 @@ def create_grid(frame, contours):
             width_tile += rect[1][0]
             height_tile += rect[1][1]
             boxes.append(box)
-            cv2.drawContours(frame,[box],0,(0, 60, 255),2)
+            cv2.drawContours(colored_frame,[box],0,(0, 60, 255),2)
     
     width_tile = width_tile//len(boxes)
     height_tile = height_tile//len(boxes)
 
-    mask = np.zeros_like(frame)
+    mask = np.zeros_like(colored_frame)
     card = copy.deepcopy(mask)
     cv2.drawContours(card, boxes, -1, (255, 255, 255), -1) # Draw filled contour in mask
     s = np.where(card == 255)
@@ -102,6 +103,7 @@ def create_grid(frame, contours):
 
 def get_template_tile(frame, contours):
     box = None
+    colored_frame = copy.deepcopy(frame)
     for cnt in contours:
         rect = cv2.minAreaRect(cnt)
         box = cv2.boxPoints(rect)
@@ -109,18 +111,18 @@ def get_template_tile(frame, contours):
         area = cv2.contourArea(box)
         if area > 5000:
             tile_to_show = box
-            cv2.drawContours(frame,[box],0,(0, 60, 255),2)
+            cv2.drawContours(colored_frame,[box],0,(0, 60, 255),2)
             break
     
-    mask = np.zeros_like(frame)
+    mask = np.zeros_like(colored_frame)
     card = copy.deepcopy(mask)
     cv2.drawContours(card, [box], -1, (255, 255, 255), -1) # Draw filled contour in mask
     s = np.where(card == 255)
     x, y = s[1], s[0]
     (topy, topx) = (np.min(y), np.min(x))
     (bottomy, bottomx) = (np.max(y), np.max(x))
-    card = frame[topy+5:bottomy-5, topx+5:bottomx-5]
-    resized_frame = imutils.resize(card, width=600)
+    card = frame[topy:bottomy, topx:bottomx]
+    # resized_frame = imutils.resize(card, width=600)
     return card
 
 def find_tiles_in_frame(frame):
@@ -138,7 +140,7 @@ def find_tiles_in_frame(frame):
         box = np.int0(box)
         area = cv2.contourArea(box)
         box_list.append(box)
-        if area > 20000:
+        if area > 8000:
             indexes.append(i)
             cv2.drawContours(colored_frame,[box],0,(0, 60, 255),2)
         i += 1
@@ -220,7 +222,7 @@ def find_matches_in_grid_and_label(grid):
                 for j, image in enumerate(row):
                     kp, des = orb.detectAndCompute(image, None)
                     matches = bf.match(des, des2)
-                    print(i,j,k)
+                    # print(i,j,k)
                     matcheslist[i][j][k] = len(matches)
 
     #Stable marriage problem possible solution??

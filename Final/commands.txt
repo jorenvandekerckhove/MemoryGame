@@ -1,5 +1,9 @@
-start python script strand_1: python main.py --INDEX_VIDEO 6 --THRESHOLD_HAND 0.45 --THRESHOLD_MATCHES 10 --BORDERS 30 --PLAY 0 --ROWS 4  --COLS 4 --SAVE 0
-start python script strand_2: python main.py --INDEX_VIDEO 7 --THRESHOLD_HAND 0.45 --THRESHOLD_MATCHES 10 --BORDERS 30 --PLAY 0 --ROWS 4  --COLS 4 --SAVE 0
-start python script winnie_1: python main.py --INDEX_VIDEO 12 --THRESHOLD_HAND 0.45 --THRESHOLD_MATCHES 10 --BORDERS 30 --PLAY 0 --ROWS 4  --COLS 6 --SAVE 0
-start python script winnie_2: python main.py --INDEX_VIDEO 13 --THRESHOLD_HAND 0.45 --THRESHOLD_MATCHES 15 --BORDERS 30 --PLAY 0 --ROWS 4  --COLS 6 --SAVE 0
-start python script disney_1: python main.py --INDEX_VIDEO 0 --THRESHOLD_HAND 0.45 --THRESHOLD_MATCHES 15 --BORDERS 30 --PLAY 0 --ROWS 4  --COLS 6 --SAVE 0
+start python script strand_1: python main.py --INDEX_VIDEO 6 --THRESHOLD_HAND 0.45 --THRESHOLD_SUB 10 --BORDER 30 --METHOD sub --PLAY 0 --ROWS 4  --COLS 4 --SAVE 0
+start python script strand_2: python main.py --INDEX_VIDEO 7 --THRESHOLD_HAND 0.45 --THRESHOLD_SUB 10 --BORDER 30 --METHOD sub --PLAY 0 --ROWS 4  --COLS 4 --SAVE 0
+start python script winnie_1: python main.py --INDEX_VIDEO 12 --THRESHOLD_HAND 0.45 --THRESHOLD_SUB 10 --BORDER 30 --METHOD sub --PLAY 0 --ROWS 4  --COLS 6 --SAVE 0
+start python script winnie_2: python main.py --INDEX_VIDEO 13 --THRESHOLD_HAND 0.45 --THRESHOLD_SUB 15 --BORDER 30 --METHOD sub --PLAY 0 --ROWS 4  --COLS 6 --SAVE 0
+start python script disney_1: python main.py --INDEX_VIDEO 0 --THRESHOLD_HAND 0.45 --THRESHOLD_SUB 15 --THRESHOLD_MATCHES 10 --BORDER 40 --METHOD sub_key --PLAY 0 --ROWS 4  --COLS 6 --SAVE 0
+start python script disney_2: python main.py --INDEX_VIDEO 1 --THRESHOLD_HAND 0.45 --THRESHOLD_SUB 35 --THRESHOLD_MATCHES 40 --BORDER 40 --METHOD sub_key --PLAY 0 --ROWS 4  --COLS 6 --SAVE 0
+start python script vdk_1: python main.py --INDEX_VIDEO 9 --THRESHOLD_HAND 0.3 --THRESHOLD_MATCHES 0.6 --BORDER 25 --METHOD template --PLAY 0 --ROWS 4  --COLS 6 --SAVE 0
+start python script vdk_2: python main.py --INDEX_VIDEO 10 --THRESHOLD_HAND 0.3 --THRESHOLD_MATCHES 0.6 --BORDER 25 --METHOD template --PLAY 0 --ROWS 4  --COLS 6 --SAVE 0
+start python script donald_1: python main.py --INDEX_VIDEO 3 --THRESHOLD_HAND 0.1 --THRESHOLD_MATCHES 0.2 --BORDER 10 --METHOD hist --PLAY 0 --ROWS 7  --COLS 10 --SAVE 1

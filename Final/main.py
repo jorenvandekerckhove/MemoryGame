@@ -110,11 +110,6 @@ if args.PLAY == 1:
                         saving_frame_counter += 1
                     saving_file = False
 
-        # gray = np.zeros((50, foreground_mask.shape[1]), np.uint8)
-        # gray[:] = 150
-        # vcat1 = cv2.vconcat((gray, foreground_mask))    
-        # cv2.putText(vcat1,f"Hand detected: {hand_in_frame}, val: {mean_value}", (30,30), font, 1,(0,0,0), 2, 0)
-        # cv2.imshow('Mask', vcat1)
         hp.show_live_feed(frame, foreground_mask, hand_in_frame, mean_value)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -127,7 +122,6 @@ if args.PLAY == 1:
 
 orb = cv2.ORB_create()
 bf = cv2.BFMatcher()
-# bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck = True)
 
 path_to_frames = args.PATH_FRAMES + '\\' + video_files[args.INDEX_VIDEO][0:-4]
 saved_frames = [f for f in listdir(path_to_frames) if isfile(join(path_to_frames, f))]
@@ -150,9 +144,6 @@ for i in range(args.ROWS):
         grid_array[i].append(template_tile)
 
 grid.grid_array = grid_array
-
-# cv2.imshow('Template_tile', template_tile)
-# cv2.waitKey()
 
 max_width = 0 # Used for later
 max_height = 0 # Used for later
@@ -237,7 +228,6 @@ for i in range(1, len(saved_frames)):
 
 solution = hp.find_matches_in_grid_and_label(grid, wta_k=args.WTA_K, border_orb=args.BORDER_ORB, border_img=args.BORDER_IMG)
 # Creating an image of the grid, so where all the tiles are shown
-# final_image = np.zeros((max_height*args.ROWS,max_width*args.COLS,3), dtype=np.uint8)
 final_image = np.zeros((template_tile.shape[0]*args.ROWS,template_tile.shape[1]*args.COLS,3), dtype=np.uint8)
 current_x = 0
 current_y = 0
@@ -253,7 +243,7 @@ for i in range(args.ROWS):
 t_find_solution = time.time()-t
 
 print('Finished in:', t_find_solution, 's')
-print('Memory used:', psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2)  # in bytes 
+print('Memory used:', psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2, 'MB')
 print(solution)
 
 cv2.imwrite('Result.png', final_image)

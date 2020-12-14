@@ -3,13 +3,14 @@ import cv2
 import imutils
 import argparse
 import os
+import psutil
+import time
 import copy
 import helper_methods as hp
 from os import listdir
 from os.path import isfile, join
 from tile import Tile
 from grid import Grid
-from skimage.measure import compare_ssim
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 prev_values_frames = []
@@ -22,18 +23,20 @@ saving_frame_counter = 0 # This variable is used so that we don't need to save a
 parser = argparse.ArgumentParser(description='Process some values.')
 parser.add_argument('--PATH_VIDEOS', type=str, default='D:\\Video\'s\\UGent\\Multimedia\\Test_files', help='Path to the videos')
 parser.add_argument('--PATH_FRAMES', type=str, default='D:\\Video\'s\\UGent\\Multimedia\\Frames', help='Path where the frames are gonna be saved')
-parser.add_argument('--INDEX_VIDEO', type=int, default=3, help='Choose which movie it needs to play')
+parser.add_argument('--INDEX_VIDEO', type=int, default=0, help='Choose which movie it needs to play')
 parser.add_argument('--THRESHOLD_HAND', type=float, default=0.1, help='Used for checking if the hand is in screen')
-parser.add_argument('--THRESHOLD_SUB', type=float, default=10, help='Used for checking if the tile is not the template tile')
+parser.add_argument('--THRESHOLD_SUB', type=float, default=15, help='Used for checking if the tile is not the template tile')
 parser.add_argument('--THRESHOLD_MATCHES', type=float, default=0.2, help='Used for checking if the tile is not the template tile')
-parser.add_argument('--COLS', type=int, default=10, help='Give the total of cols of the board')
-parser.add_argument('--ROWS', type=int, default=7, help='Give the total of rows of the board')
-parser.add_argument('--BORDER', type=int, default=10, help='Give the total of rows and cols that need to dissapear for calculation')
-parser.add_argument('--METHOD', type=str, default="hist", help='Choose which method you want to use. sub = subtraction, sub_key = subtraction or keypoints')
+parser.add_argument('--COLS', type=int, default=4, help='Give the total of cols of the board')
+parser.add_argument('--ROWS', type=int, default=4, help='Give the total of rows of the board')
+parser.add_argument('--BORDER', type=int, default=30, help='Give the total of rows and cols that need to dissapear for calculation')
+parser.add_argument('--METHOD', type=str, default="sub", help='Choose which method you want to use. sub = subtraction, sub_key = subtraction or keypoints')
 parser.add_argument('--PLAY', type=int, default=0, help='Play the video or just check the frames')
 parser.add_argument('--SAVE', type=int, default=0, help='0 for saving not all the frames, 1 for saving all the frames')
 
 args = parser.parse_args()
+
+t = time.time()
 
 print(' \n\
         ███╗   ███╗███████╗███╗   ███╗ ██████╗ ██████╗ ██╗   ██╗     ██████╗  █████╗ ███╗   ███╗███████╗ \n\
@@ -229,18 +232,27 @@ for i in range(1, len(saved_frames)):
     print('Validated tiles found:', validated_files)
     print()
 
-solution = hp.find_matches_in_grid_and_label(grid)
+solution = hp.find_matches_in_grid_and_label(grid, wta_k=3, border_orb=31, border_img=0)
 # Creating an image of the grid, so where all the tiles are shown
-final_image = np.zeros((max_height*args.ROWS,max_width*args.COLS,3), dtype=np.uint8)
+# final_image = np.zeros((max_height*args.ROWS,max_width*args.COLS,3), dtype=np.uint8)
+final_image = np.zeros((template_tile.shape[0]*args.ROWS,template_tile.shape[1]*args.COLS,3), dtype=np.uint8)
 current_x = 0
 current_y = 0
+
 for i in range(args.ROWS):
     current_x = 0
     for j in range(args.COLS):
-        final_image[current_y:(grid.grid_array[i][j].shape[0]+current_y), current_x:(grid.grid_array[i][j].shape[1]+current_x),:] = grid.grid_array[i][j]
-        current_x += grid.grid_array[i][j].shape[1]
-    current_y += max_height
-    
-cv2.imwrite('Result.png', final_image)
-print('Finished')
+        resized = cv2.resize(grid.grid_array[i][j], (template_tile.shape[1], template_tile.shape[0]))
+        final_image[current_y:(template_tile.shape[0]+current_y), current_x:(template_tile.shape[1]+current_x),:] = resized
+        current_x += template_tile.shape[1]
+    current_y += template_tile.shape[0]
+
+t_find_solution = time.time()-t
+
+print('Finished in:', t_find_solution, 's')
+print('Memory used:', psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2)  # in bytes 
 print(solution)
+
+cv2.imwrite('Result.png', final_image)
+cv2.imshow('Final', final_image)
+cv2.waitKey()

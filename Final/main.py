@@ -31,6 +31,9 @@ parser.add_argument('--COLS', type=int, default=4, help='Give the total of cols 
 parser.add_argument('--ROWS', type=int, default=4, help='Give the total of rows of the board')
 parser.add_argument('--BORDER', type=int, default=30, help='Give the total of rows and cols that need to dissapear for calculation')
 parser.add_argument('--METHOD', type=str, default="sub", help='Choose which method you want to use. sub = subtraction, sub_key = subtraction or keypoints')
+parser.add_argument('--WTA_K', type=int, default=3, help='Choose the WTA_K for the ORB creator')
+parser.add_argument('--BORDER_ORB', type=int, default=31, help='Choose the border for the ORB creator')
+parser.add_argument('--BORDER_IMG', type=int, default=0, help='Choose the border for the image for the matching process')
 parser.add_argument('--PLAY', type=int, default=0, help='Play the video or just check the frames')
 parser.add_argument('--SAVE', type=int, default=0, help='0 for saving not all the frames, 1 for saving all the frames')
 
@@ -232,7 +235,7 @@ for i in range(1, len(saved_frames)):
     print('Validated tiles found:', validated_files)
     print()
 
-solution = hp.find_matches_in_grid_and_label(grid, wta_k=3, border_orb=31, border_img=0)
+solution = hp.find_matches_in_grid_and_label(grid, wta_k=args.WTA_K, border_orb=args.BORDER_ORB, border_img=args.BORDER_IMG)
 # Creating an image of the grid, so where all the tiles are shown
 # final_image = np.zeros((max_height*args.ROWS,max_width*args.COLS,3), dtype=np.uint8)
 final_image = np.zeros((template_tile.shape[0]*args.ROWS,template_tile.shape[1]*args.COLS,3), dtype=np.uint8)
